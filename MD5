@@ -1,6 +1,6 @@
-10729507036fa1044e43153c60541c58 *DESCRIPTION
+5d51f4251ba66dfed76e96d1c708489b *DESCRIPTION
 b841e3e939b73712434141f3c711a9a3 *NAMESPACE
-71c9bf189c1f340fc9d14c8db2935fef *R/paramDemo.R
+65f445c435d2302ed60494a641ae8f7c *R/paramDemo.R
 852ba89feaa43c522298c1664450a03c *man/CalcAgeMaxFert.Rd
 d2bcf491212d2bbba09877baa023e0a9 *man/CalcAgeingRateMort.Rd
 cf9bedf62ec657a74b209cd508891568 *man/CalcDemo.Rd
@@ -12,7 +12,7 @@ ea4beb4942cc3c4cda8e05b5541abdf7 *man/CalcDiscrDemo.Rd
 a94742b3e63c568ec00ab3346f93acc8 *man/CalcProductLimitEst.Rd
 06ec2eef669ac6c72a878fef31ade9e0 *man/CalcRemainLifeExp.Rd
 23266231db4ef66ed888ef71f43adedc *man/SampleRandAge.Rd
-acb9cc35417572c7f9c65551cf2ffade *man/paramDemo-package.Rd
+9930b5eaa89e80e90057ed56adda629d *man/paramDemo-package.Rd
 d4698a42efc38c9ac9afbed3967ceb13 *man/plot.PDlifeHist.Rd
 258d18fb33e843a00fdfbf773a87da97 *man/plot.paramDemo.Rd
 63765d99c3b246a0b8a935da3cd3470a *man/plot.paramDemoLT.Rd

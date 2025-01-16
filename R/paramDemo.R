@@ -760,18 +760,28 @@
 
 # Product limit estimator:
 .CalcPLE <- function(ageLast, ageFirst, departType) {
-  # Product limit estimator:
+  # Sort ages:
   idsort <- sort.int(ageLast, index.return = TRUE)$ix
+  
+  # Create new age vector:
   agev <- unique(ageLast[idsort])
+  
+  # Number of unique ages:
   nage <- length(agev)
+  
+  # Cx and delta x vector:
   Cx <- rep(0, nage)
   delx <- rep(0, nage)
+  
+  # Fill up Cx and delta:
   for (ii in 1:nage) {
     idNx <- which(ageFirst <= agev[ii] & ageLast >= agev[ii])
     Cx[ii] <- length(idNx) / nage
     idd <- which(ageLast == agev[ii] & departType == "D")
     delx[ii] <- length(idd)
   }
+  
+  # Calculate product limit estimator:
   ple <- cumprod((1 - 1 / (nage * Cx))^delx)
   
   # Add age 0:
@@ -2045,7 +2055,7 @@ CalcAgeMaxFert <- function(beta, modelFert = "quadratic", ageMatur = 0,
   } else if (modelFert %in% c("ColcheroMuller", "Hadwiger")) {
     if (modelFert == "ColcheroMuller") {
       dfdx <- function(x, beta) {
-        x^3 + x^2 * (2 - beta["b2"]) + x0 * (1 - 2 * beta["b2"]) +
+        x^3 + x^2 * (2 - beta["b2"]) + x * (1 - 2 * beta["b2"]) +
           beta["b3"] / (2 * beta["b1"]) - beta["b2"]
       }
       dfdx2 <- function(x, beta) {
@@ -2496,7 +2506,11 @@ CalcProductLimitEst <- function(ageLast, ageFirst = NULL, departType,
   # Set age first to 0 if NULL:
   if (is.null(ageFirst)) {
     ageFirst <- rep(0, n)
-  }
+  } 
+  
+  # Eliminate potential rounding errors:
+  ageFirst <- round(ageFirst, 8)
+  ageLast <- round(ageLast, 8)
   
   if (missing(departType)) {
     stop("Argument 'departType' missing. 
