@@ -21,9 +21,10 @@
 # ---------------------------------------- #
 # Verify survival model and shape:
 .VerifySurvMod <- function(model, shape) {
-  if (!model %in% c("EX", "GO", "WE", "LO")) {
+  if (!model %in% c("EX", "GO", "WE", "LO", "GG")) {
     stop("Wrong 'model' specification.\n",
-         "       Alternatives are 'EX', 'GO', 'WE', or 'LO'.", call. = FALSE)
+         "       Alternatives are 'EX', 'GO', 'WE', 'LO', or 'GG'.", 
+         call. = FALSE)
   }
   if (!shape %in% c("simple", "Makeham", "bathtub")) {
     stop("Wrong 'shape' specification.\n",
@@ -67,6 +68,10 @@
     nTh <- 3
     nameTh <- c("b0", "b1", "b2")
     lowTh <- c(-Inf, 0, 0)
+  } else if (model == "GG") {
+    nTh <- 3 
+    nameTh <- c("b0", "b1", "b2")
+    lowTh <- c(0, 1, 1)
   }
   if (shape == "Makeham") {
     nTh <- nTh + 1
@@ -300,6 +305,30 @@
              theta[, "b1"] * (exp(theta[, "b1"] * x) - 1))
       }
     }
+  } else if (model == "GG") {
+    if (shape == "simple") {
+      mortfun <- function(theta, x) {
+        theta[, "b2"] * theta[, "b0"] * theta[, "b1"] * 
+          exp(- theta[, "b0"] * x) * 
+          (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"] - 1) / 
+          (1 - (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"]))
+      }
+    } else if (shape == "Makeham") {
+      mortfun <- function(theta, x) {
+        theta[, "c"] + theta[, "b2"] * theta[, "b0"] * theta[, "b1"] * 
+          exp(- theta[, "b0"] * x) * 
+          (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"] - 1) / 
+          (1 - (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"]))
+      }
+    } else {
+      mortfun <- function(theta, x) {
+        exp(theta[, "a0"] - theta[, "a1"] * x) + theta[, "c"] + 
+          theta[, "b2"] * theta[, "b0"] * theta[, "b1"] * 
+          exp(- theta[, "b0"] * x) * 
+          (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"] - 1) / 
+          (1 - (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"]))
+      }
+    }
   }
   return(mortfun)
 }
@@ -359,6 +388,29 @@
           exp(theta["b0"] + theta["b1"] * x) /
           (1 + theta["b2"] * exp(theta["b0"]) /
              theta["b1"] * (exp(theta["b1"] * x) - 1))
+      }
+    }
+  } else if (model == "GG") {
+    if (shape == "simple") {
+      mortfun <- function(theta, x) {
+        theta["b2"] * theta["b0"] * theta["b1"] * exp(- theta["b0"] * x) * 
+          (1 - exp(- theta["b0"] * x))^(theta["b1"] - 1) / 
+          (1 - (1 - exp(- theta["b0"] * x))^(theta["b1"]))
+      }
+    } else if (shape == "Makeham") {
+      mortfun <- function(theta, x) {
+        theta["c"] + theta["b2"] * theta["b0"] * theta["b1"] * 
+          exp(- theta["b0"] * x) * 
+          (1 - exp(- theta["b0"] * x))^(theta["b1"] - 1) / 
+          (1 - (1 - exp(- theta["b0"] * x))^(theta["b1"]))
+      }
+    } else {
+      mortfun <- function(theta, x) {
+        exp(theta["a0"] - theta["a1"] * x) + theta["c"] + 
+          theta["b2"] * theta["b0"] * theta["b1"] * 
+          exp(- theta["b0"] * x) * 
+          (1 - exp(- theta["b0"] * x))^(theta["b1"] - 1) / 
+          (1 - (1 - exp(- theta["b0"] * x))^(theta["b1"]))
       }
     }
   }
@@ -424,6 +476,24 @@
           (1 / theta[, "b2"])
       }
     }
+  } else if (model == "GG") {
+    if (shape == "simple") {
+      cumhazfun <- function(theta, x) {
+        - theta[, "b2"] * 
+          log(1 - (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"]))
+      }
+    } else if (shape == "Makeham") {
+      cumhazfun <- function(theta, x) {
+        theta[, "c"] * x - theta[, "b2"] * 
+          log(1 - (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"]))
+      }
+    } else {
+      cumhazfun <- function(theta, x) {
+        exp(theta[, "a0"]) / theta[, "a1"] * (1 - exp(-theta[, "a1"] * x)) +
+          theta[, "c"] * x - theta[, "b2"] * 
+          log(1 - (1 - exp(- theta[, "b0"] * x))^(theta[, "b1"]))
+      }
+    }
   }
   return(cumhazfun)
 }
@@ -484,6 +554,23 @@
                                  exp(theta["b0"]) / theta["b1"] *
                                  (exp(theta["b1"] * x) - 1)) *
           (1 / theta["b2"])
+      }
+    }
+  } else if (model == "GG") {
+    if (shape == "simple") {
+      cumhazfun <- function(theta, x) {
+        - theta["b2"] * log(1 - (1 - exp(- theta["b0"] * x))^(theta["b1"]))
+      }
+    } else if (shape == "Makeham") {
+      cumhazfun <- function(theta, x) {
+        theta["c"] * x - theta["b2"] * 
+          log(1 - (1 - exp(- theta["b0"] * x))^(theta["b1"]))
+      }
+    } else {
+      cumhazfun <- function(theta, x) {
+        exp(theta["a0"]) / theta["a1"] * (1 - exp(-theta["a1"] * x)) +
+          theta["c"] * x - theta["b2"] * 
+          log(1 - (1 - exp(- theta["b0"] * x))^(theta["b1"]))
       }
     }
   }
@@ -916,12 +1003,12 @@
     } else if (model == "WE") {
       MRDT <- x * (2^(1/(theta["b0"] - 1)) - 1)
       ageDep <- TRUE
-    } else {
+    } else if (model == "LO") {
       g <- theta["b2"] * exp(theta["b0"]) / theta["b1"]
       MRDT <- log((2 - 2 * g) / (1 - g * (exp(theta["b1"] * x) + 1))) /
         theta["b1"]
       ageDep <- TRUE
-    }
+    } 
     errMRDT <- 0
     iter <- 0
   } else if (shape == "Makeham") {
@@ -1553,7 +1640,7 @@ plot.paramDemo <- function(x, demofun = "all", ...) {
 # LIFE HISTORY VARIABLES: 
 # ----------------------- #
 # Main life history function:
-CalcLifeHist <- function(theta = NULL, beta = NULL, dx = NULL, 
+CalcLifeHist <- function(theta = NULL, beta = NULL, 
                          model = "GO", shape = "simple",
                          modelFert = "quadratic", ageMatur = 0, 
                          maxAge = NULL, lambdaMethod = "matrix") {
@@ -1610,9 +1697,10 @@ CalcLifeHist <- function(theta = NULL, beta = NULL, dx = NULL,
   # PREPARE AGE INFORMATION:
   # ------------------------ #
   # age interval length:
-  if (is.null(dx)) {
-    dx <- 1
-  }
+  # if (is.null(dx)) {
+  #   dx <- 1
+  # }
+  dx <- 1
   
   # Maximum age:
   if (is.null(maxAge)) {
@@ -1659,12 +1747,12 @@ CalcLifeHist <- function(theta = NULL, beta = NULL, dx = NULL,
     # Using Lotka's (1913) renewal equation:
     # ------------------------------------- #
     Findr <- function(r) {
-      lhs <- sum(exp(-r * xc) * Sxc * mxc * dxc)
+      lhs <- sum(exp(-r * xc) * Sxc * mxc * dxc, na.rm = TRUE)
       return((lhs - 1)^2)
     }
     
     # Find r:
-    rout <- optimize(f = Findr, interval = c(0, 5), tol = 10e-20)
+    rout <- optimize(f = Findr, interval = c(-5, 5), tol = 10e-20)
     
     # Extract r:
     r <- rout$minimum
@@ -1676,11 +1764,14 @@ CalcLifeHist <- function(theta = NULL, beta = NULL, dx = NULL,
     w <- (Sx * exp(-r * x)) / sum(Sx * exp(-r * x))
     
     # Reproductive value:
-    v <- sapply(x, function(xx) {
-      idsx <- which(xc >= xx)
-      sum(exp(-r * (xc[idsx] - xx)) * Sxc[idsx] * mxc[idsx] * dxc) / 
-        Sxc[idsx[1]]
-    })
+    v <- rev(cumsum(rev(lambda^(-xc) * Sxc * mxc * dxc)))
+    v <- lambda^(xc) * v / Sxc
+    v <- v[which(xc %in% x)]
+    # v <- sapply(x, function(xx) {
+    #   idsx <- which(xc >= xx)
+    #   sum(exp(-r * (xc[idsx] - xx)) * Sxc[idsx] * mxc[idsx] * dxc) / 
+    #     Sxc[idsx[1]]
+    # })
     
   } else if (lambdaMethod == "matrix") {
     # ---------------------- #
@@ -2116,6 +2207,11 @@ CalcAgeMaxFert <- function(beta, modelFert = "quadratic", ageMatur = 0,
     }
     dd <- 0
     ii <- 0
+  } else {
+    mxi <- .CalcFert(beta = beta, x = xv)
+    xm <- xv[which(mxi == max(mxi))[1]]
+    dd <- NA
+    ii <- NA
   }
   maxFert <- .CalcFert(beta, xm)
   maxFertv <- c(xm + ageMatur, maxFert, dd, ii, ageMatur)
